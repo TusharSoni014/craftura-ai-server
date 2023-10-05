@@ -11,7 +11,6 @@ const contactRouter = require("./routes/contactRouter");
 const googleOauthRouter = require("./routes/googleOauthRouter");
 const passport = require("passport");
 const cookieSession = require("cookie-session");
-const promptRouter = require("./routes/promptRouter");
 require("./passport-config");
 const PORT = process.env.PORT || 4000;
 
@@ -44,7 +43,6 @@ app.use(cookieParser());
 app.use("/image", imageGeneratorRouter);
 app.use("/user", userAuthRoutes);
 app.use("/google", googleOauthRouter);
-app.use("/prompt", promptRouter);
 app.use("/", contactRouter);
 
 app.get("/", (req, res) => {

@@ -1,7 +1,6 @@
 const getGoogleUser = async (req, res) => {
   try {
     const user = req.user;
-
     if (!user) {
       return res.status(401).send({
         message: "Unauthorized! Please login",

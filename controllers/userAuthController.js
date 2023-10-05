@@ -5,12 +5,6 @@ const { default: axios } = require("axios");
 const allowedCharactersRegex = /^[a-zA-Z0-9-_]+$/;
 
 const logout = async (req, res) => {
-  res.cookie("token", null, {
-    path: "/",
-    sameSite: "lax",
-    httpOnly: true,
-    expires: new Date(1000),
-  });
   req.session = null;
   return res.status(200).send({ message: "Logged out successfully." });
 };
