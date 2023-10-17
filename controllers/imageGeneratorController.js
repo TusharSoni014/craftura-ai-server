@@ -18,48 +18,65 @@ const genImg = async (myPrompt, negPrompt, seed) => {
   };
 
   try {
-    const response = await axios.post(
-      `${process.env.API_SERVER}/api/image`,
-      requestBody,
-      {
-        credentials: "omit",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const imageId = response.data.imageID;
+    const response = await fetch(`${process.env.API_SERVER}/api/image`, {
+      headers: {
+        Accept: "*/*",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Content-Type": "text/plain;charset=UTF-8",
+        "Alt-Used": process.env.API_ALT,
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-origin",
+      },
+      referrer: `${process.env.API_SERVER}/`,
+      body: JSON.stringify(requestBody),
+      method: "POST",
+      mode: "cors",
+    });
+    const responseJSON = await response.json();
+    const imageId = responseJSON.imageID;
     const requestBodyImage = {
       sessionID: requestBody.sessionID,
       imageID: imageId,
     };
-    let responseImage = await axios.post(
-      `${process.env.API_SERVER}/api/image/status`,
-      requestBodyImage,
-      {
-        credentials: "omit",
-        headers: {
-          "Content-Type": "application/json",
-          Referer: `${process.env.API_SERVER}/`,
-        },
-      }
-    );
+    let responseImage = await fetch(`${process.env.API_SERVER}/api/image/status`, {
+      headers: {
+        Accept: "*/*",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Content-Type": "text/plain;charset=UTF-8",
+        "Alt-Used": process.env.API_ALT,
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-origin",
+      },
+      referrer: `${process.env.API_SERVER}/`,
+      body: JSON.stringify(requestBodyImage),
+      method: "POST",
+      mode: "cors",
+    });
 
-    while (responseImage.data.status === "pending") {
+    let responseImageJSON = await responseImage.json();
+
+    while (responseImageJSON.status === "pending") {
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      responseImage = await axios.post(
-        `${process.env.API_SERVER}/api/image/status`,
-        requestBodyImage,
-        {
-          credentials: "omit",
-          headers: {
-            "Content-Type": "application/json",
-            Referer: `${process.env.API_SERVER}/`,
-          },
-        }
-      );
+      responseImage = await fetch(`${process.env.API_SERVER}/api/image/status`, {
+        headers: {
+          Accept: "*/*",
+          "Accept-Language": "en-US,en;q=0.5",
+          "Content-Type": "text/plain;charset=UTF-8",
+          "Alt-Used": process.env.API_ALT,
+          "Sec-Fetch-Dest": "empty",
+          "Sec-Fetch-Mode": "cors",
+          "Sec-Fetch-Site": "same-origin",
+        },
+        referrer: `${process.env.API_SERVER}/`,
+        body: JSON.stringify(requestBodyImage),
+        method: "POST",
+        mode: "cors",
+      });
+      responseImageJSON = await responseImage.json();
     }
-    return { image: responseImage.data.url, seed: selectedSeed };
+    return { image: responseImageJSON.url, seed: selectedSeed };
   } catch (error) {
     console.error(error);
   }
