@@ -39,27 +39,9 @@ const genImg = async (myPrompt, negPrompt, seed) => {
       sessionID: requestBody.sessionID,
       imageID: imageId,
     };
-    let responseImage = await fetch(`${process.env.API_SERVER}/api/image/status`, {
-      headers: {
-        Accept: "*/*",
-        "Accept-Language": "en-US,en;q=0.5",
-        "Content-Type": "text/plain;charset=UTF-8",
-        "Alt-Used": process.env.API_ALT,
-        "Sec-Fetch-Dest": "empty",
-        "Sec-Fetch-Mode": "cors",
-        "Sec-Fetch-Site": "same-origin",
-      },
-      referrer: `${process.env.API_SERVER}/`,
-      body: JSON.stringify(requestBodyImage),
-      method: "POST",
-      mode: "cors",
-    });
-
-    let responseImageJSON = await responseImage.json();
-
-    while (responseImageJSON.status === "pending") {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      responseImage = await fetch(`${process.env.API_SERVER}/api/image/status`, {
+    let responseImage = await fetch(
+      `${process.env.API_SERVER}/api/image/status`,
+      {
         headers: {
           Accept: "*/*",
           "Accept-Language": "en-US,en;q=0.5",
@@ -73,7 +55,31 @@ const genImg = async (myPrompt, negPrompt, seed) => {
         body: JSON.stringify(requestBodyImage),
         method: "POST",
         mode: "cors",
-      });
+      }
+    );
+
+    let responseImageJSON = await responseImage.json();
+
+    while (responseImageJSON.status === "pending") {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      responseImage = await fetch(
+        `${process.env.API_SERVER}/api/image/status`,
+        {
+          headers: {
+            Accept: "*/*",
+            "Accept-Language": "en-US,en;q=0.5",
+            "Content-Type": "text/plain;charset=UTF-8",
+            "Alt-Used": process.env.API_ALT,
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-origin",
+          },
+          referrer: `${process.env.API_SERVER}/`,
+          body: JSON.stringify(requestBodyImage),
+          method: "POST",
+          mode: "cors",
+        }
+      );
       responseImageJSON = await responseImage.json();
     }
     return { image: responseImageJSON.url, seed: selectedSeed };
@@ -94,6 +100,11 @@ const generateImages = async (req, res) => {
     }
     if (amount > 4) {
       return res.status(400).send({ message: "Amount cannot be more than 4" });
+    }
+    if (user.posts.length >= 99) {
+      return res.status(400).send({
+        message: "You cannot generate more FREE posts, contact the developer.",
+      });
     }
 
     for (let i = 0; i < amount; i++) {
