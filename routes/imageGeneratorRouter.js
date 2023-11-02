@@ -3,7 +3,6 @@ const {
   generateImages,
   getAllImages,
   getUserImages,
-  deletePost,
 } = require("../controllers/imageGeneratorController");
 const verifyToken = require("../middlewares/verifyToken");
 const { postDetails } = require("../controllers/postDetailsController");
@@ -13,6 +12,5 @@ imageGeneratorRouter.get("/getAllImages/:page", getAllImages);
 imageGeneratorRouter.get("/getUserImage/:username/:page", getUserImages);
 imageGeneratorRouter.post("/postDetails", postDetails);
 imageGeneratorRouter.post("/generate", verifyToken, generateImages);
-imageGeneratorRouter.delete("/delete/:postId", verifyToken, deletePost);
 
 module.exports = imageGeneratorRouter;

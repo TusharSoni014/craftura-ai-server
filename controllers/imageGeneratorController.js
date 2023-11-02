@@ -124,6 +124,7 @@ const generateImages = async (req, res) => {
     "teen",
     "high cut",
     "no clothes",
+    "cleavage"
   ];
 
   function containsNSFW(prompt, wordsArray) {
@@ -225,38 +226,6 @@ const getAllImages = async (req, res) => {
   }
 };
 
-const deletePost = async (req, res) => {
-  const postId = req.params.postId;
-  const userId = req._id;
-  if (!postId) {
-    return res.status(400).send({ message: "Requested post not found!" });
-  }
-  try {
-    const post = await Post.findById(postId);
-    if (!post) {
-      return res
-        .status(404)
-        .send({ message: "Post is already deleted or not found!" });
-    }
-
-    if (post.owner.toString() !== userId.toString()) {
-      return res.status(403).send({
-        message: "You do not have permission to delete this post",
-      });
-    }
-    const user = await User.findById(userId);
-    if (user) {
-      user.posts = user.posts.filter((url) => url !== post.url);
-      await user.save();
-    }
-    await Post.findByIdAndRemove(postId);
-
-    return res.status(200).send({ message: "Post deleted successfully" });
-  } catch (error) {
-    return res.status(500).send({ message: "Error deleting post" });
-  }
-};
-
 const getUserImages = async (req, res) => {
   const pageSize = 8;
   try {
@@ -302,5 +271,4 @@ module.exports = {
   generateImages,
   getAllImages,
   getUserImages,
-  deletePost,
 };
