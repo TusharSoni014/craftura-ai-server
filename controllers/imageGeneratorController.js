@@ -92,6 +92,54 @@ const generateImages = async (req, res) => {
   const userId = req._id;
   let { prompt, amount, negPrompt, seed } = req.body;
 
+  const wordsArray = [
+    "nsfw",
+    "nude",
+    "kissing",
+    "kissed",
+    "kiss",
+    "naked",
+    "breasts",
+    "pussy",
+    "vagina",
+    "boobs",
+    "sex",
+    "penis",
+    "butt",
+    "ass",
+    "fuck",
+    "fucking",
+    "dick",
+    "cock",
+    "tits",
+    "small girl",
+    "sexy",
+    "bikini",
+    "full body",
+    "thong",
+    "bottomless",
+    "teen girl",
+    "thongs",
+    "teenage",
+    "teen",
+    "high cut",
+    "no clothes",
+  ];
+
+  function containsNSFW(prompt, wordsArray) {
+    const lowerCasePrompt = prompt.toLowerCase();
+    const regexPattern = new RegExp(
+      `(\\b(?:${wordsArray.join("|")})\\b)|[({[\\s]*(\\b(?:${wordsArray.join(
+        "|"
+      )})\\b)[\\s]*[})\\]]`,
+      "i"
+    );
+    return regexPattern.test(lowerCasePrompt);
+  }
+  if (containsNSFW(prompt, wordsArray)) {
+    return res.status(403).send({ message: "This prompt is not allowed!" });
+  }
+
   const outputArray = [];
   try {
     const user = await User.findById(userId);
