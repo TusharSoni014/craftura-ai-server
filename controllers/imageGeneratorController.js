@@ -100,6 +100,7 @@ async function nsfwPromptDetection(prompt) {
   });
   const result = await response.json();
   const nsfwObject = await result[0].find((item) => item.label === "NSFW");
+  console.log({ prompt: prompt.inputs, score: nsfwObject.score });
   return nsfwObject;
 }
 
