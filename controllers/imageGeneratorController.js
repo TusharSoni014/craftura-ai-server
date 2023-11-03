@@ -121,7 +121,7 @@ const generateImages = async (req, res) => {
   } catch (error) {
     return res
       .status(500)
-      .send({ message: "Failed to detect prompt requirements!" });
+      .send({ message: "Failed to detect prompt requirements! Please wait few seconds!" });
   }
 
   const outputArray = [];
