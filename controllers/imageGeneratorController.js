@@ -9,16 +9,21 @@ const genImg = async (myPrompt, negPrompt, seed) => {
   const requestBody = {
     sessionID: process.env.SESSION_ID,
     prompt: myPrompt,
+    cfgscale: 7,
+    folderID: "",
+    height: 512,
+    width: 512,
+    sampler: "DPM++ 2M Karras",
     negprompt: `${negPrompt}, (((nude))),(((naked))),(((without clothes))),(((exposed breasts))),(((exposed vagina))),(((exposed dick)))`,
     seed: selectedSeed,
     steps: 20,
-    modelName: "sdxl_base_r2",
+    modelName: "model9",
     subseed: Math.floor(randomSeed / 2),
-    subseed_strength: 0.5,
+    subseed_strength: 0.2,
   };
 
   try {
-    const response = await fetch(`${process.env.API_SERVER}/api/image`, {
+    const response = await fetch(`${process.env.API_SERVER}/generateImage`, {
       headers: {
         Accept: "*/*",
         "Accept-Language": "en-US,en;q=0.5",
@@ -34,13 +39,13 @@ const genImg = async (myPrompt, negPrompt, seed) => {
       mode: "cors",
     });
     const responseJSON = await response.json();
-    const imageId = responseJSON.imageID;
+    const imageId = responseJSON.payload.imageID;
     const requestBodyImage = {
       sessionID: requestBody.sessionID,
       imageID: imageId,
     };
     let responseImage = await fetch(
-      `${process.env.API_SERVER}/api/image/status`,
+      `${process.env.API_SERVER}/getImageStatus`,
       {
         headers: {
           Accept: "*/*",
@@ -51,7 +56,7 @@ const genImg = async (myPrompt, negPrompt, seed) => {
           "Sec-Fetch-Mode": "cors",
           "Sec-Fetch-Site": "same-origin",
         },
-        referrer: `${process.env.API_SERVER}/`,
+        referrer: `${process.env.API_REFERRER}/`,
         body: JSON.stringify(requestBodyImage),
         method: "POST",
         mode: "cors",
@@ -60,85 +65,62 @@ const genImg = async (myPrompt, negPrompt, seed) => {
 
     let responseImageJSON = await responseImage.json();
 
-    while (responseImageJSON.status === "pending") {
+    while (responseImageJSON.payload.status === "pending") {
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      responseImage = await fetch(
-        `${process.env.API_SERVER}/api/image/status`,
-        {
-          headers: {
-            Accept: "*/*",
-            "Accept-Language": "en-US,en;q=0.5",
-            "Content-Type": "text/plain;charset=UTF-8",
-            "Alt-Used": process.env.API_ALT,
-            "Sec-Fetch-Dest": "empty",
-            "Sec-Fetch-Mode": "cors",
-            "Sec-Fetch-Site": "same-origin",
-          },
-          referrer: `${process.env.API_SERVER}/`,
-          body: JSON.stringify(requestBodyImage),
-          method: "POST",
-          mode: "cors",
-        }
-      );
+      responseImage = await fetch(`${process.env.API_SERVER}/getImageStatus`, {
+        headers: {
+          Accept: "*/*",
+          "Accept-Language": "en-US,en;q=0.5",
+          "Content-Type": "text/plain;charset=UTF-8",
+          "Alt-Used": process.env.API_ALT,
+          "Sec-Fetch-Dest": "empty",
+          "Sec-Fetch-Mode": "cors",
+          "Sec-Fetch-Site": "same-origin",
+        },
+        referrer: `${process.env.API_REFERRER}/`,
+        body: JSON.stringify(requestBodyImage),
+        method: "POST",
+        mode: "cors",
+      });
       responseImageJSON = await responseImage.json();
     }
-    return { image: responseImageJSON.url, seed: selectedSeed };
+    return { image: responseImageJSON.payload.url, seed: selectedSeed };
   } catch (error) {
     console.error(error);
   }
 };
 
+async function nsfwPromptDetection(prompt) {
+  const response = await fetch(process.env.PROMPT_DETECTION_API, {
+    headers: {
+      Authorization: `Bearer ${process.env.PROMPT_DETECTION_API_KEY}`,
+    },
+    method: "POST",
+    body: JSON.stringify(prompt),
+  });
+  const result = await response.json();
+  const nsfwObject = await result[0].find((item) => item.label === "NSFW");
+  return nsfwObject;
+}
+
 const generateImages = async (req, res) => {
   const userId = req._id;
   let { prompt, amount, negPrompt, seed } = req.body;
 
-  const wordsArray = [
-    "nsfw",
-    "nude",
-    "kissing",
-    "kissed",
-    "kiss",
-    "naked",
-    "breasts",
-    "pussy",
-    "vagina",
-    "boobs",
-    "sex",
-    "penis",
-    "butt",
-    "ass",
-    "fuck",
-    "fucking",
-    "dick",
-    "cock",
-    "tits",
-    "small girl",
-    "sexy",
-    "bikini",
-    "full body",
-    "thong",
-    "bottomless",
-    "teen girl",
-    "thongs",
-    "teenage",
-    "teen",
-    "high cut",
-    "no clothes",
-    "cleavage"
-  ];
+  try {
+    const promptScore = await nsfwPromptDetection({
+      inputs: prompt,
+    });
 
-  function containsNSFW(prompt, wordsArray) {
-    const lowerCasePrompt = prompt.toLowerCase();
-    const regexPattern = new RegExp(
-      `(\\b(?:${wordsArray.join("|")})\\b)|[({[\\s]*(\\b(?:${wordsArray.join(
-        "|"
-      )})\\b)[\\s]*[})\\]]`,
-      "i"
-    );
-    return regexPattern.test(lowerCasePrompt);
-  }
-  if (containsNSFW(prompt, wordsArray)) {
-    return res.status(403).send({ message: "This prompt is not allowed!" });
+    if (Number(promptScore.score) >= 0.5) {
+      return res.status(403).send({
+        message: "NSFW Prompt detected, try adjusting your prompt!",
+      });
+    }
+  } catch (error) {
+    return res
+      .status(500)
+      .send({ message: "Failed to detect prompt requirements!" });
   }
 
   const outputArray = [];
