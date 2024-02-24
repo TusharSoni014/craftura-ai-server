@@ -90,39 +90,9 @@ const genImg = async (myPrompt, negPrompt, seed) => {
   }
 };
 
-async function nsfwPromptDetection(prompt) {
-  const response = await fetch(process.env.PROMPT_DETECTION_API, {
-    headers: {
-      Authorization: `Bearer ${process.env.PROMPT_DETECTION_API_KEY}`,
-    },
-    method: "POST",
-    body: JSON.stringify(prompt),
-  });
-  const result = await response.json();
-  const nsfwObject = await result[0].find((item) => item.label === "NSFW");
-  console.log({ prompt: prompt.inputs, score: nsfwObject.score });
-  return nsfwObject;
-}
-
 const generateImages = async (req, res) => {
   const userId = req._id;
   let { prompt, amount, negPrompt, seed } = req.body;
-
-  try {
-    const promptScore = await nsfwPromptDetection({
-      inputs: prompt,
-    });
-
-    if (Number(promptScore.score) >= 0.5) {
-      return res.status(403).send({
-        message: "NSFW Prompt detected, try adjusting your prompt!",
-      });
-    }
-  } catch (error) {
-    return res
-      .status(500)
-      .send({ message: "Failed to detect prompt requirements! Please wait few seconds!" });
-  }
 
   const outputArray = [];
   try {
