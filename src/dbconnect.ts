@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const dbconnect = async () => {
+export const dbconnect = async () => {
   const uri = process.env.MONGO_URI;
   const dbConfig = {
     dbname: "DallE-Clone",
@@ -14,5 +14,3 @@ const dbconnect = async () => {
     console.log(error);
   }
 };
-
-module.exports = dbconnect;
