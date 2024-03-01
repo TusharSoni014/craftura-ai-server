@@ -2,9 +2,9 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import { dbconnect } from "./dbconnect";
-import cookieSession from "cookie-session"
+import cookieSession from "cookie-session";
 import cookieParser from "cookie-parser";
-import passport from "passport"
+import passport from "passport";
 const app = express();
 dotenv.config();
 const imageGeneratorRouter = require("./routes/imageGeneratorRouter");
@@ -15,7 +15,7 @@ require("./passport-config");
 
 const PORT = process.env.PORT || 4000;
 
-app.use(express.json({ limit: "10mb" }));
+app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 dbconnect();
