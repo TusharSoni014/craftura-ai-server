@@ -4,37 +4,37 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
+const dotenv_1 = __importDefault(require("dotenv"));
+const cors_1 = __importDefault(require("cors"));
+const dbconnect_1 = require("./dbconnect");
+const cookie_session_1 = __importDefault(require("cookie-session"));
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
+const passport_1 = __importDefault(require("passport"));
 const app = (0, express_1.default)();
-const dotenv = require("dotenv");
-const cors = require("cors");
-dotenv.config();
-const dbconnect = require("./dbconnect");
-const cookieParser = require("cookie-parser");
+dotenv_1.default.config();
 const imageGeneratorRouter = require("./routes/imageGeneratorRouter");
 const userAuthRoutes = require("./routes/userAuthRouter");
 const contactRouter = require("./routes/contactRouter");
 const googleOauthRouter = require("./routes/googleOauthRouter");
-const passport = require("passport");
-const cookieSession = require("cookie-session");
 require("./passport-config");
 const PORT = process.env.PORT || 4000;
-app.use(express_1.default.json({ limit: "10mb" }));
+app.use(express_1.default.json({ limit: "2mb" }));
 app.use(express_1.default.urlencoded({ extended: true }));
-dbconnect();
-app.use(cors({
+(0, dbconnect_1.dbconnect)();
+app.use((0, cors_1.default)({
     credentials: true,
     origin: [process.env.FE_URL],
 }));
-app.use(cookieSession({
+app.use((0, cookie_session_1.default)({
     name: "session",
     maxAge: 1 * 24 * 60 * 60 * 1000,
     keys: [process.env.COOKIE_SECRET],
     sameSite: "lax",
     httpOnly: true,
 }));
-app.use(passport.initialize());
-app.use(passport.session());
-app.use(cookieParser());
+app.use(passport_1.default.initialize());
+app.use(passport_1.default.session());
+app.use((0, cookie_parser_1.default)());
 app.use("/image", imageGeneratorRouter);
 app.use("/user", userAuthRoutes);
 app.use("/google", googleOauthRouter);
