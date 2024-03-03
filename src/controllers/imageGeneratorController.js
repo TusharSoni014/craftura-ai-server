@@ -1,6 +1,7 @@
 const { default: axios } = require("axios");
 const Post = require("../models/Post");
 const User = require("../models/User");
+const fetch = require("node-fetch")
 
 const genImg = async (myPrompt, negPrompt, seed) => {
   const randomSeed = Math.floor(Math.random() * (1000000000 - 1 + 1)) + 1;
