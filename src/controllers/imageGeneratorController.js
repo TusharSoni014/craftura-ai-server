@@ -39,6 +39,7 @@ const genImg = async (myPrompt, negPrompt, seed) => {
       mode: "cors",
     });
     const responseJSON = await response.json();
+    console.log(responseJSON)
     const imageId = responseJSON.payload.imageID;
     const requestBodyImage = {
       sessionID: requestBody.sessionID,
@@ -111,6 +112,7 @@ const generateImages = async (req, res) => {
 
     for (let i = 0; i < amount; i++) {
       const imageResponse = await genImg(prompt, negPrompt, seed);
+      console.log(imageResponse)
       const image = await Post.create({
         url: imageResponse.image,
         seed: imageResponse.seed,
